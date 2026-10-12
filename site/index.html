@@ -79,6 +79,27 @@ h2 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
 .loop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font: 14px var(--mono); margin-top: 28px; color: var(--dim); }
 .loop b { color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
 
+.chat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 14px; }
+.msg { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; }
+.who { font: 600 12px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding-top: 3px; }
+.who.u { color: var(--amber); }
+.bubble { font-size: 15px; }
+.bubble.user { color: var(--text); }
+.bubble.ans { color: var(--dim); }
+.bubble.ans b { color: var(--text); font-weight: 600; }
+.tool { font: 12.5px/1.6 var(--mono); background: #101216; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; color: var(--dim); }
+.tool .c { color: var(--amber); } .tool .d { color: var(--faint); } .tool .g { color: var(--green); } .tool .b { color: var(--blue); }
+.asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 16px; }
+.ask { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 10px; align-content: start; }
+.ask q { quotes: none; font-size: 15px; color: var(--text); }
+.ask .why { font-size: 13.5px; color: var(--dim); margin: 0; }
+.ask code { display: block; font: 12.5px/1.6 var(--mono); color: var(--amber); white-space: pre; overflow-x: auto; scrollbar-width: none; }
+.snippet { position: relative; margin-top: 16px; }
+.snippet pre { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 20px 20px; font: 13px/1.65 var(--mono); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.snippet .copy { position: absolute; top: 12px; right: 12px; }
+h3 { font-size: 19px; margin: 44px 0 6px; letter-spacing: -0.01em; }
+@media (max-width: 600px) { .msg { grid-template-columns: 1fr; gap: 6px; } .asks { grid-template-columns: 1fr; } .snippet pre { padding-top: 52px; } }
+
 footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
 footer a { color: var(--dim); }
 
@@ -150,6 +171,54 @@ footer a { color: var(--dim); }
     <div class="loop"><b>search</b>→<b>show</b>→<b>resume</b></div>
   </section>
 
+  <section id="memory">
+    <h2>Long-term memory for Claude</h2>
+    <p class="sub">Claude starts every session with an empty head. Give it ccx and it can look up what you did last week the same way you would: search, read the few blocks that matter, carry on. Just say "use ccx".</p>
+
+    <div class="chat">
+      <div class="msg"><span class="who u">You</span><div class="bubble user">Use ccx to find the session where we moved the blog to the new VPS. The DNS records are gone from the old registrar, what did we have?</div></div>
+      <div class="msg"><span class="who">Claude</span><div class="tool"><span class="c">$</span> ccx index
+<span class="d">Indexed 3 changed file(s) of 2955 scanned (0.4s)</span>
+<span class="c">$</span> ccx search "dns records" -p blog -t Bash --json -n 5
+<span class="d">→ 2 hits ·</span> <span class="b">blog</span> <span class="d">· Sep 3 · "Move to new VPS"</span>
+<span class="c">$</span> ccx show 81c07e5d --line 412 -C 6 --json
+<span class="d">→ 13 blocks: the dig output from before the move, then the new A record</span></div></div>
+      <div class="msg"><span class="who">Claude</span><div class="bubble ans">Found it: <b>Sep 3, "Move to new VPS"</b>. Before the move you had an A record for the apex, a CNAME for <code>www</code>, two MX records for your mail host and a TXT record for SPF. We only re-created the A record afterwards, which is why mail stopped. Want me to add the other four back?</div></div>
+    </div>
+
+    <h3>Things people ask</h3>
+    <p class="sub">Each one turns into a search or two and a <code>show</code> of the right slice. Claude never has to read a whole transcript.</p>
+    <div class="asks">
+      <div class="ask"><q>"Find the session where I fine-tuned the model with LoRA. Which learning rate did we land on?"</q><code>ccx search "lora learning rate" -k assistant
+ccx show &lt;id&gt; --line &lt;n&gt; -C 10</code><p class="why">Recover a decision and the reasoning behind it.</p></div>
+      <div class="ask"><q>"Pull up the convo where we set up the agent on the remote machine and pick up where it left off."</q><code>ccx sessions -q "remote machine" --json
+ccx show &lt;id&gt; --tail 30 --json</code><p class="why">Re-load a stalled task's last state into a fresh session.</p></div>
+      <div class="ask"><q>"How did we get that CLI to authenticate last month? Do it the same way."</q><code>ccx search "cookies auth" -t Bash -s 2m</code><p class="why">Re-use a command that worked, instead of rediscovering it.</p></div>
+      <div class="ask"><q>"We found a bug in #337 recently. Was it actually intentional?"</q><code>ccx search "337" -s 2w --main
+ccx show &lt;id&gt; --line &lt;n&gt; -C 12</code><p class="why">Check what was known before changing behavior.</p></div>
+      <div class="ask"><q>"Look at the briefings you've written me before and design a better one."</q><code>ccx sessions -q briefing --json
+ccx show &lt;id&gt; --tail 20 --json</code><p class="why">Learn from its own past output.</p></div>
+      <div class="ask"><q>"Go through my last three months of sessions. What have I built that I could turn into X? Rank them."</q><code>ccx sessions -s 3m -n 200 --json
+ccx search "&lt;theme&gt;" --json -n 30</code><p class="why">Mine your whole history for patterns.</p></div>
+    </div>
+
+    <h3>Make it automatic</h3>
+    <p class="sub">Paste this into <code>~/.claude/CLAUDE.md</code> and Claude reaches for ccx on its own whenever you mention an earlier conversation.</p>
+    <div class="snippet">
+      <button class="copy" id="copySnippet">Copy</button>
+<pre id="snippetText">## Past conversations
+`ccx` searches every past Claude Code session on this machine. When I refer to an
+earlier conversation ("the session where…", "like last time", "we already fixed
+this") or you need context you don't have:
+1. Run `ccx index` (sub-second), then `ccx search "&lt;terms&gt;" --json -n 10`.
+   Narrow with -p &lt;project&gt;, -s 2w, -k user, -t Bash, --main.
+2. Read the best hits with `ccx show &lt;session&gt; --line &lt;n&gt; -C 10 --json`.
+   Read slices, never whole transcripts.
+3. Say what you found (date and session title), or that nothing matched.
+If I want to jump back in, give me the `ccx resume &lt;session&gt;` line.</pre>
+    </div>
+  </section>
+
   <footer>
     <span>ccx · MIT licensed · <a href="https://github.com/luquitared/ccx" data-out="footer">github.com/luquitared/ccx</a></span>
     <span>An <a href="https://odapt.ai" data-out="odapt">Odapt</a> listed app. Not affiliated with Anthropic.</span>
@@ -163,6 +232,10 @@ document.getElementById("copyBtn").addEventListener("click", async (e) => {
   const text = document.getElementById("installCmd").textContent.replace(/^\$ /, "");
   try { await navigator.clipboard.writeText(text); e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy", 1500); } catch {}
   track("copy_install");
+});
+document.getElementById("copySnippet").addEventListener("click", async (e) => {
+  try { await navigator.clipboard.writeText(document.getElementById("snippetText").textContent); e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy", 1500); } catch {}
+  track("copy_snippet");
 });
 document.querySelectorAll("[data-out]").forEach(a => a.addEventListener("click", () => track("outbound", { to: a.dataset.out, href: a.href })));
 

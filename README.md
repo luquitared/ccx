@@ -57,11 +57,37 @@ search → show the slice → optionally `ccx resume` the session.
 - **Sidechains**: subagent transcripts are indexed and attributed to their parent session;
   exclude them with `--main`.
 
-## Agent use
+## Agent use: long-term memory for Claude
 
-`--json` on `search`/`sessions`/`show` makes ccx usable as long-term memory for Claude
-sessions themselves: an agent searches, pulls only the relevant ~10-block slice with
-`ccx show --json`, and never has to read a multi-MB transcript.
+Claude starts every session with an empty head. With ccx it can look up earlier sessions the way
+you would: search, read the few blocks that matter, carry on. `--json` on `search`, `show` and
+`sessions` keeps it cheap: an agent pulls a ~10-block slice instead of a multi-MB transcript.
+
+Just ask it to "use ccx":
+
+| You say | Claude runs |
+|---|---|
+| "Find the session where I fine-tuned the model with LoRA. Which learning rate did we land on?" | `ccx search "lora learning rate" -k assistant` → `ccx show <id> --line <n> -C 10` |
+| "Pull up the convo where we set up the agent on the remote machine and pick up where it left off." | `ccx sessions -q "remote machine" --json` → `ccx show <id> --tail 30 --json` |
+| "How did we get that CLI to authenticate last month? Do it the same way." | `ccx search "cookies auth" -t Bash -s 2m` |
+| "We found a bug in #337 recently. Was it actually intentional?" | `ccx search "337" -s 2w --main` → `ccx show <id> --line <n> -C 12` |
+| "The DNS records are gone from the old registrar. What did we have before the move?" | `ccx search "dns records" -p blog -t Bash` → `ccx show <id> --line <n> -C 6` |
+| "Go through my last three months of sessions. What have I built that I could turn into X?" | `ccx sessions -s 3m -n 200 --json` → `ccx search "<theme>" --json -n 30` |
+
+To make it automatic, add this to `~/.claude/CLAUDE.md`:
+
+```markdown
+## Past conversations
+`ccx` searches every past Claude Code session on this machine. When I refer to an
+earlier conversation ("the session where…", "like last time", "we already fixed
+this") or you need context you don't have:
+1. Run `ccx index` (sub-second), then `ccx search "<terms>" --json -n 10`.
+   Narrow with -p <project>, -s 2w, -k user, -t Bash, --main.
+2. Read the best hits with `ccx show <session> --line <n> -C 10 --json`.
+   Read slices, never whole transcripts.
+3. Say what you found (date and session title), or that nothing matched.
+If I want to jump back in, give me the `ccx resume <session>` line.
+```
 
 ## Links
 
