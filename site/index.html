@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ccx · Search your Claude Code history</title>
+<meta name="description" content="A tiny CLI that full-text indexes every Claude Code transcript on your machine: prompts, replies, tool calls and their output. Find that command from three weeks ago in milliseconds.">
+<meta property="og:title" content="ccx · Search your Claude Code history">
+<meta property="og:description" content="Full-text search over every prompt, reply, tool call and tool result in ~/.claude/projects. Zero dependencies, local only.">
+<meta property="og:image" content="https://ccx.odapt.ai/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ccx: search your Claude Code history. A terminal shows ccx search results with ready-to-run show commands.">
+<meta property="og:url" content="https://ccx.odapt.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ccx">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ccx · Search your Claude Code history">
+<meta name="twitter:description" content="Full-text search over every prompt, reply, tool call and tool result in ~/.claude/projects. Zero dependencies, local only.">
+<meta name="twitter:image" content="https://ccx.odapt.ai/og.png">
+<meta name="theme-color" content="#15171c">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;650;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #101216; --panel: #15171c; --line: #262a31; --text: #e9e6df; --dim: #9a978f; --faint: #6b6962;
+  --amber: #f2a33a; --green: #8fcf7a; --blue: #7fb2e6; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, sans-serif; }
+a { color: inherit; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 20px var(--mono); text-decoration: none; }
+.brand img { width: 30px; height: 30px; }
+.gh { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--dim); text-decoration: none; padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.gh:hover { color: var(--text); border-color: #3a3f48; }
+.gh svg { width: 16px; height: 16px; fill: currentColor; }
+
+.hero { padding: 64px 0 40px; display: grid; gap: 48px; grid-template-columns: minmax(0, 1fr); }
+.hero > * { min-width: 0; }
+h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; font-weight: 800; }
+h1 em { font-style: normal; color: var(--amber); }
+.lede { font-size: 19px; color: var(--dim); max-width: 620px; margin: 0 0 30px; }
+.install { display: flex; align-items: center; gap: 12px; max-width: 620px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 12px 18px; font: 14px var(--mono); }
+.install code { flex: 1; overflow-x: auto; white-space: nowrap; color: var(--text); scrollbar-width: none; }
+.install code::-webkit-scrollbar { display: none; }
+.install .p { color: var(--amber); user-select: none; }
+.copy { flex: none; font: 600 13px Inter, sans-serif; background: var(--amber); color: #1a1408; border: 0; border-radius: 7px; padding: 8px 14px; cursor: pointer; }
+.copy:active { transform: translateY(1px); }
+.req { margin-top: 12px; font-size: 13px; color: var(--faint); }
+.req a { color: var(--dim); }
+
+.term { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); }
+.term .bar { display: flex; gap: 7px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.term .bar i { width: 11px; height: 11px; border-radius: 50%; background: #2c3038; }
+.term pre { margin: 0; padding: 18px 20px 22px; font: 13px/1.7 var(--mono); overflow-x: auto; color: var(--text); }
+.term .c { color: var(--amber); } .term .d { color: var(--faint); } .term .g { color: var(--green); } .term .b { color: var(--blue); } .term .m { color: var(--dim); }
+
+section { padding: 56px 0; border-top: 1px solid var(--line); }
+h2 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+.sub { color: var(--dim); margin: 0 0 32px; max-width: 640px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.card b { display: block; font-size: 16px; margin-bottom: 6px; }
+.card p { margin: 0; color: var(--dim); font-size: 14.5px; }
+.card .k { font: 600 12px var(--mono); color: var(--amber); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 12px; display: block; }
+
+.cmds { display: grid; gap: 10px; }
+.cmd { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 14px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.cmd code { font: 13.5px var(--mono); color: var(--text); overflow-wrap: anywhere; }
+.cmd span { color: var(--dim); font-size: 14.5px; }
+
+.loop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font: 14px var(--mono); margin-top: 28px; color: var(--dim); }
+.loop b { color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
+
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--faint); font-size: 13.5px; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+footer a { color: var(--dim); }
+
+@media (min-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; padding-top: 80px; }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px; }
+  .hero { padding-top: 32px; }
+  .lede { font-size: 17px; }
+  .cmd { grid-template-columns: 1fr; gap: 4px; }
+  .term pre { font-size: 11.5px; padding: 14px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="/"><img src="favicon.svg" alt="">ccx</a>
+    <a class="gh" href="https://github.com/luquitared/ccx" data-out="nav"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+  </nav>
+
+  <div class="hero">
+    <div>
+      <h1>Search everything you've <em>ever done</em> in Claude Code.</h1>
+      <p class="lede">ccx indexes every transcript in <code>~/.claude/projects</code>: your prompts, the replies, every tool call and what it returned. Find the command from three weeks ago in milliseconds, then jump straight back into that session.</p>
+      <div class="install">
+        <code id="installCmd"><span class="p">$ </span>git clone https://github.com/luquitared/ccx &amp;&amp; cd ccx &amp;&amp; bun link &amp;&amp; ccx index</code>
+        <button class="copy" id="copyBtn">Copy</button>
+      </div>
+      <div class="req">Needs <a href="https://bun.sh" data-out="bun">Bun</a> ≥ 1.1. Zero dependencies. Nothing leaves your machine.</div>
+    </div>
+    <div class="term" aria-label="Example ccx search output">
+      <div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="c">$</span> ccx search "nginx reload" -t Bash
+<span class="g"> 1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 14:02 <span class="d">·</span> Fix TLS renewal
+    <span class="m">sudo systemctl reload nginx</span>
+    <span class="d">↳ ccx show 3f9a12c0 --line 214</span>
+<span class="g"> 2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 09:41 <span class="d">·</span> Move to new VPS
+    <span class="m">rsync -a conf/ vps:/etc/nginx/</span>
+    <span class="d">↳ ccx show 81c07e5d --line 977</span>
+
+<span class="c">$</span> ccx resume 3f9a12c0
+<span class="m">cd ~/code/infra &amp;&amp; claude -r 3f9a…</span></pre>
+    </div>
+  </div>
+
+  <section>
+    <h2>Claude Code keeps everything. It just can't find it.</h2>
+    <p class="sub">Every session is saved as JSONL on your disk, often gigabytes of it. ccx turns that pile into a SQLite full-text index you can query like grep, only ranked and fast.</p>
+    <div class="grid">
+      <div class="card"><span class="k">All of it</span><b>Not just the chat</b><p>Prompts, replies, thinking, tool calls with their inputs, tool results, summaries, titles, and subagent transcripts.</p></div>
+      <div class="card"><span class="k">Fast</span><b>Milliseconds, ranked</b><p>SQLite FTS5 with BM25 ranking. Re-indexing only touches changed files, so it's sub-second when nothing's new.</p></div>
+      <div class="card"><span class="k">Clean</span><b>Noise filtered out</b><p>Injected reminders, hook output and resume replays are skipped, and every entry is indexed exactly once.</p></div>
+      <div class="card"><span class="k">Agent-ready</span><b>JSON everywhere</b><p><code>--json</code> on search, show and sessions, so a Claude session can search its own past and read just the ~10 blocks it needs.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Five commands</h2>
+    <p class="sub">Filter by project, time window, tool or block kind. Every hit prints the command to open it.</p>
+    <div class="cmds">
+      <div class="cmd"><code>ccx search "rate limit" -p my-api -s 2w</code><span>Ranked hits from one project in the last two weeks</span></div>
+      <div class="cmd"><code>ccx search "presigned url" -t Bash</code><span>Only Bash tool calls</span></div>
+      <div class="cmd"><code>ccx show 3f9a12c0 --line 214 -C 8</code><span>The conversation around a hit, rendered</span></div>
+      <div class="cmd"><code>ccx sessions -p my-api -s 1m</code><span>Sessions, newest first, with titles</span></div>
+      <div class="cmd"><code>ccx resume 3f9a12c0</code><span>Prints the <code>cd … &amp;&amp; claude -r</code> line to pick it back up</span></div>
+    </div>
+    <div class="loop"><b>search</b>→<b>show</b>→<b>resume</b></div>
+  </section>
+
+  <footer>
+    <span>ccx · MIT licensed · <a href="https://github.com/luquitared/ccx" data-out="footer">github.com/luquitared/ccx</a></span>
+    <span>An <a href="https://odapt.ai" data-out="odapt">Odapt</a> listed app. Not affiliated with Anthropic.</span>
+  </footer>
+</div>
+<script src="events.js"></script>
+<script>
+track("view", { ref: document.referrer || null });
+
+document.getElementById("copyBtn").addEventListener("click", async (e) => {
+  const text = document.getElementById("installCmd").textContent.replace(/^\$ /, "");
+  try { await navigator.clipboard.writeText(text); e.target.textContent = "Copied"; setTimeout(() => e.target.textContent = "Copy", 1500); } catch {}
+  track("copy_install");
+});
+document.querySelectorAll("[data-out]").forEach(a => a.addEventListener("click", () => track("outbound", { to: a.dataset.out, href: a.href })));
+
+let deep = false;
+addEventListener("scroll", () => {
+  if (deep) return;
+  if (scrollY + innerHeight > document.body.scrollHeight * 0.7) { deep = true; track("scroll_deep"); }
+}, { passive: true });
+</script>
+</body>
+</html>

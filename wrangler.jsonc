@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ccx",
+  "compatibility_date": "2026-10-06",
+  "observability": { "enabled": true },
+  // Static landing page only; the CLI itself is src/
+  "assets": { "directory": "site" },
+  "routes": [{ "pattern": "ccx.odapt.ai", "custom_domain": true }],
+  "workers_dev": false
+}

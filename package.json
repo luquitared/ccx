@@ -1,0 +1,23 @@
+{
+  "name": "ccx",
+  "version": "0.1.0",
+  "description": "Search and explore Claude Code conversation history from the terminal",
+  "type": "module",
+  "bin": {
+    "ccx": "./src/cli.ts"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "license": "MIT",
+  "homepage": "https://ccx.odapt.ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luquitared/ccx"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
+}
