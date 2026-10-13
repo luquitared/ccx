@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ccx · Find any Claude Code thread</title>
-<meta name="description" content="Closed a Claude Code thread and can't find it again? ccx indexes every transcript on your machine so Claude can find it, pull the context, or resume it, no matter which folder you started in.">
-<meta property="og:title" content="ccx · Find any Claude Code thread">
-<meta property="og:description" content="Thousands of sessions, dozens of folders. Ask Claude and it finds the thread you need. Zero dependencies, local only.">
+<title>ccx · Search your Claude Code history</title>
+<meta name="description" content="A tiny CLI that full-text indexes every Claude Code transcript on your machine: prompts, replies, tool calls and their output. Find that command from three weeks ago in milliseconds.">
+<meta property="og:title" content="ccx · Search your Claude Code history">
+<meta property="og:description" content="Full-text search over every prompt, reply, tool call and tool result in ~/.claude/projects. Zero dependencies, local only.">
 <meta property="og:image" content="https://ccx.odapt.ai/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="ccx: find any Claude Code thread. Claude uses ccx to find a closed session and answer from it.">
+<meta property="og:image:alt" content="ccx: search your Claude Code history. A terminal shows ccx search results with ready-to-run show commands.">
 <meta property="og:url" content="https://ccx.odapt.ai/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ccx">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ccx · Find any Claude Code thread">
-<meta name="twitter:description" content="Thousands of sessions, dozens of folders. Ask Claude and it finds the thread you need. Zero dependencies, local only.">
+<meta name="twitter:title" content="ccx · Search your Claude Code history">
+<meta name="twitter:description" content="Full-text search over every prompt, reply, tool call and tool result in ~/.claude/projects. Zero dependencies, local only.">
 <meta name="twitter:image" content="https://ccx.odapt.ai/og.png">
 <meta name="theme-color" content="#15171c">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -42,11 +42,11 @@ nav { display: flex; align-items: center; justify-content: space-between; paddin
 .gh:hover { color: var(--text); border-color: #3a3f48; }
 .gh svg { width: 16px; height: 16px; fill: currentColor; }
 
-.hero { padding: 64px 0 56px; display: grid; gap: 40px; grid-template-columns: minmax(0, 1fr); }
+.hero { padding: 64px 0 40px; display: grid; gap: 48px; grid-template-columns: minmax(0, 1fr); }
 .hero > * { min-width: 0; }
-h1 { max-width: 820px; font-size: clamp(34px, 6vw, 60px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; font-weight: 800; }
+h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 20px; font-weight: 800; }
 h1 em { font-style: normal; color: var(--amber); }
-.lede { font-size: 19px; color: var(--dim); max-width: 680px; margin: 0 0 30px; }
+.lede { font-size: 19px; color: var(--dim); max-width: 620px; margin: 0 0 30px; }
 .install { display: flex; align-items: center; gap: 12px; max-width: 620px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 12px 18px; font: 14px var(--mono); }
 .install code { flex: 1; overflow-x: auto; white-space: nowrap; color: var(--text); scrollbar-width: none; }
 .install code::-webkit-scrollbar { display: none; }
@@ -56,7 +56,6 @@ h1 em { font-style: normal; color: var(--amber); }
 .req { margin-top: 12px; font-size: 13px; color: var(--faint); }
 .req a { color: var(--dim); }
 
-#how .term { margin-bottom: 16px; }
 .term { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); }
 .term .bar { display: flex; gap: 7px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
 .term .bar i { width: 11px; height: 11px; border-radius: 50%; background: #2c3038; }
@@ -80,7 +79,6 @@ h2 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
 .loop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font: 14px var(--mono); margin-top: 28px; color: var(--dim); }
 .loop b { color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-weight: 600; }
 
-.hero .chat { box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); }
 .chat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 14px; }
 .msg { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; }
 .who { font: 600 12px var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding-top: 3px; }
@@ -106,7 +104,7 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--f
 footer a { color: var(--dim); }
 
 @media (min-width: 900px) {
-  .hero { padding-top: 80px; }
+  .hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; padding-top: 80px; }
 }
 @media (max-width: 600px) {
   .wrap { padding: 0 16px; }
@@ -126,28 +124,69 @@ footer a { color: var(--dim); }
 
   <div class="hero">
     <div>
-      <h1>That thread you closed? <em>Claude can find it.</em></h1>
-      <p class="lede">You know the conversation exists. It's somewhere in thousands of sessions, started from a folder you can't remember. ccx indexes every Claude Code transcript on your machine, so you just ask: Claude finds the thread, pulls the context you need, or hands you the line to resume it.</p>
+      <h1>Search everything you've <em>ever done</em> in Claude Code.</h1>
+      <p class="lede">ccx indexes every transcript in <code>~/.claude/projects</code>: your prompts, the replies, every tool call and what it returned. Find the command from three weeks ago in milliseconds, then jump straight back into that session.</p>
       <div class="install">
         <code id="installCmd"><span class="p">$ </span>git clone https://github.com/luquitared/ccx &amp;&amp; cd ccx &amp;&amp; bun link &amp;&amp; ccx index</code>
         <button class="copy" id="copyBtn">Copy</button>
       </div>
-      <div class="req">Needs <a href="https://bun.sh" data-out="bun">Bun</a> ≥ 1.1. Zero dependencies. Nothing leaves your machine. Then <a href="#automatic">add one snippet to CLAUDE.md</a>.</div>
+      <div class="req">Needs <a href="https://bun.sh" data-out="bun">Bun</a> ≥ 1.1. Zero dependencies. Nothing leaves your machine.</div>
     </div>
-    <div class="chat">
-      <div class="msg"><span class="who u">You</span><div class="bubble user">Use ccx to find the session where we moved the blog to the new VPS, no idea which folder I was in. The DNS records are gone from the old registrar, what did we have?</div></div>
-      <div class="msg"><span class="who">Claude</span><div class="tool"><span class="c">$</span> ccx index
-<span class="d">Indexed 3 changed file(s) of 2955 scanned (0.4s)</span>
-<span class="c">$</span> ccx search "dns records vps" -t Bash --json -n 5
-<span class="d">→ 2 hits, both in</span> <span class="b">~/code/blog</span> <span class="d">· Sep 3 · "Move to new VPS"</span>
-<span class="c">$</span> ccx show 81c07e5d --line 412 -C 6 --json
-<span class="d">→ 13 blocks: the dig output from before the move, then the new A record</span></div></div>
-      <div class="msg"><span class="who">Claude</span><div class="bubble ans">Found it: <b>Sep 3, "Move to new VPS"</b>. Before the move you had an A record for the apex, a CNAME for <code>www</code>, two MX records for your mail host and a TXT record for SPF. We only re-created the A record afterwards, which is why mail stopped. Want me to add the other four back? Or <code>ccx resume 81c07e5d</code> to jump into that thread.</div></div>
+    <div class="term" aria-label="Example ccx search output">
+      <div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="c">$</span> ccx search "nginx reload" -t Bash
+<span class="g"> 1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 14:02 <span class="d">·</span> Fix TLS renewal
+    <span class="m">sudo systemctl reload nginx</span>
+    <span class="d">↳ ccx show 3f9a12c0 --line 214</span>
+<span class="g"> 2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 09:41 <span class="d">·</span> Move to new VPS
+    <span class="m">rsync -a conf/ vps:/etc/nginx/</span>
+    <span class="d">↳ ccx show 81c07e5d --line 977</span>
+
+<span class="c">$</span> ccx resume 3f9a12c0
+<span class="m">cd ~/code/infra &amp;&amp; claude -r 3f9a…</span></pre>
     </div>
   </div>
 
+  <section>
+    <h2>Claude Code keeps everything. It just can't find it.</h2>
+    <p class="sub">Every session is saved as JSONL on your disk, often gigabytes of it. ccx turns that pile into a SQLite full-text index you can query like grep, only ranked and fast.</p>
+    <div class="grid">
+      <div class="card"><span class="k">All of it</span><b>Not just the chat</b><p>Prompts, replies, thinking, tool calls with their inputs, tool results, summaries, titles, and subagent transcripts.</p></div>
+      <div class="card"><span class="k">Fast</span><b>Milliseconds, ranked</b><p>SQLite FTS5 with BM25 ranking. Re-indexing only touches changed files, so it's sub-second when nothing's new.</p></div>
+      <div class="card"><span class="k">Clean</span><b>Noise filtered out</b><p>Injected reminders, hook output and resume replays are skipped, and every entry is indexed exactly once.</p></div>
+      <div class="card"><span class="k">Agent-ready</span><b>JSON everywhere</b><p><code>--json</code> on search, show and sessions, so a Claude session can search its own past and read just the ~10 blocks it needs.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Five commands</h2>
+    <p class="sub">Filter by project, time window, tool or block kind. Every hit prints the command to open it.</p>
+    <div class="cmds">
+      <div class="cmd"><code>ccx search "rate limit" -p my-api -s 2w</code><span>Ranked hits from one project in the last two weeks</span></div>
+      <div class="cmd"><code>ccx search "presigned url" -t Bash</code><span>Only Bash tool calls</span></div>
+      <div class="cmd"><code>ccx show 3f9a12c0 --line 214 -C 8</code><span>The conversation around a hit, rendered</span></div>
+      <div class="cmd"><code>ccx sessions -p my-api -s 1m</code><span>Sessions, newest first, with titles</span></div>
+      <div class="cmd"><code>ccx resume 3f9a12c0</code><span>Prints the <code>cd … &amp;&amp; claude -r</code> line to pick it back up</span></div>
+    </div>
+    <div class="loop"><b>search</b>→<b>show</b>→<b>resume</b></div>
+  </section>
+
   <section id="memory">
-    <h2>Things people ask Claude</h2>
+    <h2>Long-term memory for Claude</h2>
+    <p class="sub">Claude starts every session with an empty head. Give it ccx and it can look up what you did last week the same way you would: search, read the few blocks that matter, carry on. Just say "use ccx".</p>
+
+    <div class="chat">
+      <div class="msg"><span class="who u">You</span><div class="bubble user">Use ccx to find the session where we moved the blog to the new VPS. The DNS records are gone from the old registrar, what did we have?</div></div>
+      <div class="msg"><span class="who">Claude</span><div class="tool"><span class="c">$</span> ccx index
+<span class="d">Indexed 3 changed file(s) of 2955 scanned (0.4s)</span>
+<span class="c">$</span> ccx search "dns records" -p blog -t Bash --json -n 5
+<span class="d">→ 2 hits ·</span> <span class="b">blog</span> <span class="d">· Sep 3 · "Move to new VPS"</span>
+<span class="c">$</span> ccx show 81c07e5d --line 412 -C 6 --json
+<span class="d">→ 13 blocks: the dig output from before the move, then the new A record</span></div></div>
+      <div class="msg"><span class="who">Claude</span><div class="bubble ans">Found it: <b>Sep 3, "Move to new VPS"</b>. Before the move you had an A record for the apex, a CNAME for <code>www</code>, two MX records for your mail host and a TXT record for SPF. We only re-created the A record afterwards, which is why mail stopped. Want me to add the other four back?</div></div>
+    </div>
+
+    <h3>Things people ask</h3>
     <p class="sub">Each one turns into a search or two and a <code>show</code> of the right slice. Claude never has to read a whole transcript.</p>
     <div class="asks">
       <div class="ask"><q>"Find the session where I fine-tuned the model with LoRA. Which learning rate did we land on?"</q><code>ccx search "lora learning rate" -k assistant
@@ -162,10 +201,8 @@ ccx show &lt;id&gt; --tail 20 --json</code><p class="why">Learn from its own pas
       <div class="ask"><q>"Go through my last three months of sessions. What have I built that I could turn into X? Rank them."</q><code>ccx sessions -s 3m -n 200 --json
 ccx search "&lt;theme&gt;" --json -n 30</code><p class="why">Mine your whole history for patterns.</p></div>
     </div>
-  </section>
 
-  <section id="automatic">
-    <h2>Make it automatic</h2>
+    <h3>Make it automatic</h3>
     <p class="sub">Paste this into <code>~/.claude/CLAUDE.md</code> and Claude reaches for ccx on its own whenever you mention an earlier conversation.</p>
     <div class="snippet">
       <button class="copy" id="copySnippet">Copy</button>
@@ -180,41 +217,6 @@ this") or you need context you don't have:
 3. Say what you found (date and session title), or that nothing matched.
 If I want to jump back in, give me the `ccx resume &lt;session&gt;` line.</pre>
     </div>
-  </section>
-
-  <section id="how">
-    <h2>How it works</h2>
-    <p class="sub">Claude Code saves every session as JSONL on your disk, often gigabytes of it. ccx turns that pile into a SQLite full-text index that Claude, or you, can query like grep, only ranked and fast.</p>
-    <div class="term" aria-label="Example ccx search output">
-      <div class="bar"><i></i><i></i><i></i></div>
-<pre><span class="c">$</span> ccx search "nginx reload" -t Bash
-<span class="g"> 1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 14:02 <span class="d">·</span> Fix TLS renewal
-    <span class="m">sudo systemctl reload nginx</span>
-    <span class="d">↳ ccx show 3f9a12c0 --line 214</span>
-<span class="g"> 2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 09:41 <span class="d">·</span> Move to new VPS
-    <span class="m">rsync -a conf/ vps:/etc/nginx/</span>
-    <span class="d">↳ ccx show 81c07e5d --line 977</span>
-
-<span class="c">$</span> ccx resume 3f9a12c0
-<span class="m">cd ~/code/infra &amp;&amp; claude -r 3f9a…</span></pre>
-    </div>
-    <div class="grid">
-      <div class="card"><span class="k">All of it</span><b>Not just the chat</b><p>Prompts, replies, thinking, tool calls with their inputs, tool results, summaries, titles, and subagent transcripts.</p></div>
-      <div class="card"><span class="k">Fast</span><b>Milliseconds, ranked</b><p>SQLite FTS5 with BM25 ranking. Re-indexing only touches changed files, so it's sub-second when nothing's new.</p></div>
-      <div class="card"><span class="k">Clean</span><b>Noise filtered out</b><p>Injected reminders, hook output and resume replays are skipped, and every entry is indexed exactly once.</p></div>
-      <div class="card"><span class="k">Agent-ready</span><b>JSON everywhere</b><p><code>--json</code> on search, show and sessions, so a Claude session can search its own past and read just the ~10 blocks it needs.</p></div>
-    </div>
-
-    <h3>Five commands</h3>
-    <p class="sub">Filter by project, time window, tool or block kind. Every hit prints the command to open it.</p>
-    <div class="cmds">
-      <div class="cmd"><code>ccx search "rate limit" -p my-api -s 2w</code><span>Ranked hits from one project in the last two weeks</span></div>
-      <div class="cmd"><code>ccx search "presigned url" -t Bash</code><span>Only Bash tool calls</span></div>
-      <div class="cmd"><code>ccx show 3f9a12c0 --line 214 -C 8</code><span>The conversation around a hit, rendered</span></div>
-      <div class="cmd"><code>ccx sessions -p my-api -s 1m</code><span>Sessions, newest first, with titles</span></div>
-      <div class="cmd"><code>ccx resume 3f9a12c0</code><span>Prints the <code>cd … &amp;&amp; claude -r</code> line to pick it back up</span></div>
-    </div>
-    <div class="loop"><b>search</b>→<b>show</b>→<b>resume</b></div>
   </section>
 
   <footer>

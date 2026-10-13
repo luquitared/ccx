@@ -1,30 +1,31 @@
 <!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@500;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@500;800&display=swap" rel="stylesheet">
 <style>
 body{margin:0;width:1200px;height:630px;background:#101216;color:#e9e6df;font-family:Inter,sans-serif;overflow:hidden;position:relative}
 .glow{position:absolute;right:-180px;top:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(242,163,58,.18),transparent 65%)}
-.l{position:absolute;left:64px;top:70px;width:500px}
+.l{position:absolute;left:72px;top:70px;width:560px}
 .brand{display:flex;align-items:center;gap:16px;font:700 40px 'JetBrains Mono',monospace}
 .brand img{width:64px;height:64px}
-h1{font-size:56px;line-height:1.04;letter-spacing:-.03em;margin:46px 0 22px;font-weight:800}
+h1{font-size:62px;line-height:1.04;letter-spacing:-.03em;margin:46px 0 22px;font-weight:800}
 h1 em{font-style:normal;color:#f2a33a}
-p{font-size:23px;color:#9a978f;margin:0;line-height:1.4}
-.t{position:absolute;right:48px;top:96px;width:520px;background:#15171c;border:1px solid #262a31;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
-.t{padding:24px;display:grid;gap:16px}
-.msg{font-size:19px;line-height:1.45;display:grid;gap:6px}
-.who{font:600 14px 'JetBrains Mono',monospace;color:#6b6962;text-transform:uppercase;letter-spacing:.06em}.who.u{color:#f2a33a}
-.ans{color:#9a978f}.ans b{color:#e9e6df;font-weight:600}
-pre{margin:0;padding:14px 16px;background:#101216;border:1px solid #262a31;border-radius:10px;font:15px/1.7 'JetBrains Mono',monospace;white-space:pre}
+p{font-size:25px;color:#9a978f;margin:0;line-height:1.4}
+.t{position:absolute;right:56px;top:118px;width:500px;background:#15171c;border:1px solid #262a31;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+.bar{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid #262a31}.bar i{width:12px;height:12px;border-radius:50%;background:#2c3038}
+pre{margin:0;padding:22px;font:17px/1.75 'JetBrains Mono',monospace;white-space:pre}
 .c{color:#f2a33a}.d{color:#6b6962}.g{color:#8fcf7a}.b{color:#7fb2e6}.m{color:#9a978f}
-.url{position:absolute;left:64px;bottom:56px;font:600 22px 'JetBrains Mono',monospace;color:#6b6962}
+.url{position:absolute;left:72px;bottom:56px;font:600 22px 'JetBrains Mono',monospace;color:#6b6962}
 </style></head><body><div class="glow"></div>
 <div class="l"><div class="brand"><img src="logo.svg">ccx</div>
-<h1>That thread you closed? <em>Claude can find it.</em></h1>
-<p>Thousands of sessions, dozens of folders. Just ask, and ccx finds the one you need.</p></div>
-<div class="t"><div class="msg"><span class="who u">You</span><div>Use ccx to find the session where we moved the blog. No idea which folder. What DNS records did we have?</div></div>
-<pre><span class="c">$</span> ccx search "dns records vps"
-<span class="d">→ 2 hits in</span> <span class="b">~/code/blog</span> <span class="d">· Sep 3</span>
-<span class="c">$</span> ccx show 81c07e5d --line 412</pre>
-<div class="msg"><span class="who">Claude</span><div class="ans">Found it: <b>Sep 3, "Move to new VPS"</b>. You had an A, a CNAME, two MX and an SPF record. Only the A came back.</div></div></div>
+<h1>Search your <em>Claude Code</em> history.</h1>
+<p>Every prompt, reply, tool call and result. Indexed locally, found in milliseconds.</p></div>
+<div class="t"><div class="bar"><i></i><i></i><i></i></div><pre><span class="c">$</span> ccx search "nginx reload"
+<span class="g"> 1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 <span class="d">·</span> Bash
+    <span class="m">sudo systemctl reload nginx</span>
+    <span class="d">↳ ccx show 3f9a12c0 --line 214</span>
+<span class="g"> 2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 <span class="d">·</span> Bash
+    <span class="m">rsync -a conf/ vps:/etc/nginx/</span>
+    <span class="d">↳ ccx show 81c07e5d --line 977</span>
+
+<span class="c">$</span> ccx resume 3f9a12c0</pre></div>
 <div class="url">ccx.odapt.ai</div>
 </body></html>
