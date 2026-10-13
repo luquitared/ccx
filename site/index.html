@@ -89,11 +89,11 @@ h2 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
 .bubble.ans b { color: var(--text); font-weight: 600; }
 .tool { font: 12.5px/1.6 var(--mono); background: #101216; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; color: var(--dim); }
 .tool .c { color: var(--amber); } .tool .d { color: var(--faint); } .tool .g { color: var(--green); } .tool .b { color: var(--blue); }
-.asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 16px; }
-.ask { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 10px; align-content: start; }
-.ask q { quotes: none; font-size: 15px; color: var(--text); }
-.ask .why { font-size: 13.5px; color: var(--dim); margin: 0; }
-.ask code { display: block; font: 12.5px/1.6 var(--mono); color: var(--amber); white-space: pre; overflow-x: auto; scrollbar-width: none; }
+.asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px; }
+.ask { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; display: grid; gap: 14px; align-content: start; }
+.ask .why { font: 600 12px var(--mono); color: var(--amber); letter-spacing: .04em; text-transform: uppercase; }
+.ask q { quotes: none; font-size: 17px; line-height: 1.5; color: var(--text); }
+.ask code { display: block; font: 13px/1.7 var(--mono); color: var(--dim); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .snippet { position: relative; margin-top: 16px; }
 .snippet pre { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px 20px 20px; font: 13px/1.65 var(--mono); color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
 .snippet .copy { position: absolute; top: 12px; right: 12px; }
@@ -124,8 +124,8 @@ footer a { color: var(--dim); }
 
   <div class="hero">
     <div>
-      <h1>Search everything you've <em>ever done</em> in Claude Code.</h1>
-      <p class="lede">ccx indexes every transcript in <code>~/.claude/projects</code>: your prompts, the replies, every tool call and what it returned. Find the command from three weeks ago in milliseconds, then jump straight back into that session.</p>
+      <h1>Find anything in your Claude Code history <em>instantly</em>.</h1>
+      <p class="lede">ccx indexes every transcript in <code>~/.claude/projects</code>: your prompts, the replies, every tool call and what it returned. Find that bit of context buried deep in previous sessions, or resume that session in a heartbeat.</p>
       <div class="install">
         <code id="installCmd"><span class="p">$ </span>git clone https://github.com/luquitared/ccx &amp;&amp; cd ccx &amp;&amp; bun link &amp;&amp; ccx index</code>
         <button class="copy" id="copyBtn">Copy</button>
@@ -159,6 +159,24 @@ footer a { color: var(--dim); }
     </div>
   </section>
 
+  <section id="examples">
+    <h2>Things people ask Claude</h2>
+    <p class="sub">Each one turns into a search or two and a <code>show</code> of the right slice. Claude never has to read a whole transcript.</p>
+    <div class="asks">
+      <div class="ask"><span class="why">Recover a decision</span><q>"Find the session where I fine-tuned the model with LoRA. Which learning rate did we land on?"</q><code>ccx search "lora learning rate" -k assistant
+ccx show &lt;id&gt; --line &lt;n&gt; -C 10</code></div>
+      <div class="ask"><span class="why">Pick up a stalled task</span><q>"Pull up the convo where we set up the agent on the remote machine and pick up where it left off."</q><code>ccx sessions -q "remote machine" --json
+ccx show &lt;id&gt; --tail 30 --json</code></div>
+      <div class="ask"><span class="why">Reuse what worked</span><q>"How did we get that CLI to authenticate last month? Do it the same way."</q><code>ccx search "cookies auth" -t Bash -s 2m</code></div>
+      <div class="ask"><span class="why">Check before changing</span><q>"We found a bug in #337 recently. Was it actually intentional?"</q><code>ccx search "337" -s 2w --main
+ccx show &lt;id&gt; --line &lt;n&gt; -C 12</code></div>
+      <div class="ask"><span class="why">Learn from past output</span><q>"Look at the briefings you've written me before and design a better one."</q><code>ccx sessions -q briefing --json
+ccx show &lt;id&gt; --tail 20 --json</code></div>
+      <div class="ask"><span class="why">Mine your history</span><q>"Go through my last three months of sessions. What have I built that I could turn into X? Rank them."</q><code>ccx sessions -s 3m -n 200 --json
+ccx search "&lt;theme&gt;" --json -n 30</code></div>
+    </div>
+  </section>
+
   <section>
     <h2>Five commands</h2>
     <p class="sub">Filter by project, time window, tool or block kind. Every hit prints the command to open it.</p>
@@ -185,22 +203,6 @@ footer a { color: var(--dim); }
 <span class="c">$</span> ccx show 81c07e5d --line 412 -C 6 --json
 <span class="d">→ 13 blocks: the dig output from before the move, then the new A record</span></div></div>
       <div class="msg"><span class="who">Claude</span><div class="bubble ans">Found it: <b>Sep 3, "Move to new VPS"</b>. Before the move you had an A record for the apex, a CNAME for <code>www</code>, two MX records for your mail host and a TXT record for SPF. We only re-created the A record afterwards, which is why mail stopped. Want me to add the other four back?</div></div>
-    </div>
-
-    <h3>Things people ask</h3>
-    <p class="sub">Each one turns into a search or two and a <code>show</code> of the right slice. Claude never has to read a whole transcript.</p>
-    <div class="asks">
-      <div class="ask"><q>"Find the session where I fine-tuned the model with LoRA. Which learning rate did we land on?"</q><code>ccx search "lora learning rate" -k assistant
-ccx show &lt;id&gt; --line &lt;n&gt; -C 10</code><p class="why">Recover a decision and the reasoning behind it.</p></div>
-      <div class="ask"><q>"Pull up the convo where we set up the agent on the remote machine and pick up where it left off."</q><code>ccx sessions -q "remote machine" --json
-ccx show &lt;id&gt; --tail 30 --json</code><p class="why">Re-load a stalled task's last state into a fresh session.</p></div>
-      <div class="ask"><q>"How did we get that CLI to authenticate last month? Do it the same way."</q><code>ccx search "cookies auth" -t Bash -s 2m</code><p class="why">Re-use a command that worked, instead of rediscovering it.</p></div>
-      <div class="ask"><q>"We found a bug in #337 recently. Was it actually intentional?"</q><code>ccx search "337" -s 2w --main
-ccx show &lt;id&gt; --line &lt;n&gt; -C 12</code><p class="why">Check what was known before changing behavior.</p></div>
-      <div class="ask"><q>"Look at the briefings you've written me before and design a better one."</q><code>ccx sessions -q briefing --json
-ccx show &lt;id&gt; --tail 20 --json</code><p class="why">Learn from its own past output.</p></div>
-      <div class="ask"><q>"Go through my last three months of sessions. What have I built that I could turn into X? Rank them."</q><code>ccx sessions -s 3m -n 200 --json
-ccx search "&lt;theme&gt;" --json -n 30</code><p class="why">Mine your whole history for patterns.</p></div>
     </div>
 
     <h3>Make it automatic</h3>
