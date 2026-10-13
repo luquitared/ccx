@@ -3,8 +3,8 @@
 Search and explore your Claude Code conversation history from the terminal.
 
 Claude Code stores every session as JSONL under `~/.claude/projects/`, but gives you no way
-to search it. `ccx` builds a local SQLite **FTS5** index over *everything* in those
-transcripts — user prompts, assistant replies, thinking blocks, tool calls (with inputs),
+to search it. `ccx` indexes every transcript, whatever directory the session ran in, into a
+local SQLite **FTS5** index covering *everything* in them — user prompts, assistant replies, thinking blocks, tool calls (with inputs),
 tool results, system messages, summaries, and titles — including subagent sidechain files,
 and lets you query it with BM25 ranking in milliseconds.
 
@@ -43,6 +43,8 @@ search → show the slice → optionally `ccx resume` the session.
 
 ## How it works
 
+- **Sources**: every project under `~/.claude/projects`, `~/.config/claude/projects` and
+  `$CLAUDE_CONFIG_DIR/projects`. Add more roots with `CCX_CLAUDE_DIRS=/a:/b`.
 - **Index**: `~/.ccx/index.db`, an FTS5 table (`porter unicode61` tokenizer) plus small
   `sessions`/`files` metadata tables. Sync is mtime+size-diffed per file, so re-runs only
   touch changed sessions.

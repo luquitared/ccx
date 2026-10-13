@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { extractEntry } from "./extract.ts";
-import { UUID_RE, claudeDir, dim } from "./util.ts";
+import { UUID_RE, claudeDirs, dim } from "./util.ts";
 
 type FileRow = { mtime_ms: number; size: number };
 
@@ -14,9 +14,13 @@ export function runIndex(db: Database, opts: { full?: boolean; quiet?: boolean }
     db.run("DELETE FROM sessions");
   }
 
-  const projectsDir = join(claudeDir(), "projects");
-  if (!existsSync(projectsDir)) {
-    throw new Error(`No Claude projects directory at ${projectsDir}`);
+  const projectsDirs = claudeDirs()
+    .map((d) => join(d, "projects"))
+    .filter((d) => existsSync(d));
+  if (projectsDirs.length === 0) {
+    throw new Error(
+      `No Claude projects directory found (looked in ${claudeDirs().join(", ")})`,
+    );
   }
 
   const getFile = db.prepare<FileRow, [string]>(
@@ -27,16 +31,17 @@ export function runIndex(db: Database, opts: { full?: boolean; quiet?: boolean }
   let scanned = 0;
   let indexed = 0;
 
-  const slugs = readdirSync(projectsDir).filter((d) => {
-    try {
-      return statSync(join(projectsDir, d)).isDirectory();
-    } catch {
-      return false;
+  const projectDirs: { slug: string; dir: string }[] = [];
+  for (const projectsDir of projectsDirs) {
+    for (const slug of readdirSync(projectsDir)) {
+      const dir = join(projectsDir, slug);
+      try {
+        if (statSync(dir).isDirectory()) projectDirs.push({ slug, dir });
+      } catch {}
     }
-  });
+  }
 
-  for (const slug of slugs) {
-    const dir = join(projectsDir, slug);
+  for (const { slug, dir } of projectDirs) {
     const glob = new Bun.Glob("**/*.jsonl");
     for (const path of glob.scanSync({ cwd: dir, absolute: true })) {
       scanned++;

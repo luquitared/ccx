@@ -1,8 +1,25 @@
 import { homedir } from "node:os";
 import { join, basename } from "node:path";
 
-export const claudeDir = () =>
-  process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");
+/**
+ * Every Claude Code config root we can find, so sessions are indexed no matter
+ * which directory (or config dir) they were started from. Extra roots can be
+ * added with CCX_CLAUDE_DIRS (colon-separated).
+ */
+export function claudeDirs(): string[] {
+  const candidates = [
+    ...(process.env.CCX_CLAUDE_DIRS?.split(":") ?? []),
+    process.env.CLAUDE_CONFIG_DIR,
+    join(homedir(), ".claude"),
+    join(homedir(), ".config", "claude"),
+  ];
+  const seen = new Set<string>();
+  return candidates.filter((d): d is string => {
+    if (!d || seen.has(d)) return false;
+    seen.add(d);
+    return true;
+  });
+}
 
 export const ccxDir = () => process.env.CCX_DIR ?? join(homedir(), ".ccx");
 
