@@ -132,18 +132,19 @@ footer a { color: var(--dim); }
       </div>
       <div class="req">Needs <a href="https://bun.sh" data-out="bun">Bun</a> ≥ 1.1. Zero dependencies. Nothing leaves your machine.</div>
     </div>
-    <div class="term" aria-label="Example ccx search output">
+    <div class="term" aria-label="Claude Code using ccx to find a past session">
       <div class="bar"><i></i><i></i><i></i></div>
-<pre><span class="c">$</span> ccx search "nginx reload" -t Bash
-<span class="g"> 1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 14:02 <span class="d">·</span> Fix TLS renewal
-    <span class="m">sudo systemctl reload nginx</span>
-    <span class="d">↳ ccx show 3f9a12c0 --line 214</span>
-<span class="g"> 2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 09:41 <span class="d">·</span> Move to new VPS
-    <span class="m">rsync -a conf/ vps:/etc/nginx/</span>
-    <span class="d">↳ ccx show 81c07e5d --line 977</span>
+<pre><span class="c">&gt;</span> where did we fix the nginx TLS renewal?
+  i forget which repo it was in
 
-<span class="c">$</span> ccx resume 3f9a12c0
-<span class="m">cd ~/code/infra &amp;&amp; claude -r 3f9a…</span></pre>
+<span class="g">⏺</span> Bash(ccx search "nginx reload" -t Bash)
+  <span class="d">⎿</span> <span class="g">1.</span> <span class="b">infra</span> <span class="d">·</span> Sep 28 <span class="d">·</span> Fix TLS renewal
+       <span class="m">sudo systemctl reload nginx</span>
+    <span class="g">2.</span> <span class="b">blog</span> <span class="d">·</span> Sep 3 <span class="d">·</span> Move to new VPS
+
+<span class="g">⏺</span> It was <span class="b">infra</span>, Sep 28 ("Fix TLS renewal"):
+  certbot renew, then <span class="m">systemctl reload nginx</span>.
+  To jump back in: <span class="c">ccx resume 3f9a12c0</span></pre>
     </div>
   </div>
 
