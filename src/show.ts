@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolveSession } from "./db.ts";
 import { extractEntry, type Extracted } from "./extract.ts";
 import {
+  printOut,
   bold,
   cyan,
   dim,
@@ -99,7 +100,7 @@ export function runShow(db: Database, target: string, opts: ShowOpts) {
   }
 
   if (opts.json) {
-    console.log(
+    printOut(
       JSON.stringify(
         {
           file,
@@ -120,10 +121,18 @@ export function runShow(db: Database, target: string, opts: ShowOpts) {
     return;
   }
 
+  printBlocks(selected, note, opts.full, header);
+}
+
+/** What printBlocks needs of a block; a remote's `show --json` blocks carry `timestamp` for `ts`. */
+export type ShownBlock = Pick<Extracted, "line" | "kind" | "tool" | "text"> & { ts?: string | null; timestamp?: string | null };
+
+export function printBlocks(selected: ShownBlock[], note: string, full: boolean, header = "") {
   if (header) console.log(header + "\n");
   console.log(dim(`── ${note} ──\n`));
   for (const b of selected) {
-    const ts = b.ts ? ` · ${fmtDate(b.ts)}` : "";
+    const at = b.ts ?? b.timestamp;
+    const ts = at ? ` · ${fmtDate(at)}` : "";
     const loc = dim(`L${b.line}`);
     switch (b.kind) {
       case "user":
@@ -145,7 +154,7 @@ export function runShow(db: Database, target: string, opts: ShowOpts) {
         console.log(`${dim(`[${b.kind}]`)}${dim(ts)} ${loc}`);
     }
     const cap = DISPLAY_CAPS[b.kind] ?? 1000;
-    const text = opts.full ? b.text : truncate(b.text, cap);
+    const text = full ? b.text : truncate(b.text, cap);
     console.log(text.replace(/^/gm, "  ") + "\n");
   }
 }

@@ -1,3 +1,4 @@
+import { writeSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, basename } from "node:path";
 
@@ -84,4 +85,22 @@ export function truncate(s: string, n: number): string {
 
 export function oneLine(s: string): string {
   return s.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Print to stdout synchronously. console.log on a pipe can lose everything past the
+ * first 64 KiB when the process exits, which silently corrupts `--json` for any
+ * consumer reading through a pipe, so anything large goes through here.
+ */
+export function printOut(text: string): void {
+  const buf = Buffer.from(text.endsWith("\n") ? text : text + "\n");
+  let at = 0;
+  while (at < buf.length) {
+    try {
+      at += writeSync(1, buf, at);
+    } catch (e: any) {
+      if (e?.code !== "EAGAIN") throw e;
+      Bun.sleepSync(1);
+    }
+  }
 }
