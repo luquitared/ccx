@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import { basename, dirname } from "node:path";
 import type { SessionRow } from "./db.ts";
 import {
+  printOut,
   bold,
   cyan,
   dim,
@@ -105,13 +106,33 @@ export function sessionMap(db: Database, hits: Hit[]): Map<string, SessionRow> {
   return map;
 }
 
-export function printHits(db: Database, hits: Hit[], asJson: boolean) {
+/** A hit as `--json` prints it. `machine` and `user` are set when other machines were asked. */
+export type Result = {
+  machine?: string;
+  user?: string | null;
+  session: string;
+  project: string;
+  title: string | null;
+  kind: string;
+  tool: string | null;
+  timestamp: string | null;
+  file: string;
+  line: number;
+  sidechain: boolean;
+  snippet: string;
+  show: string;
+};
+/** Local hits also carry the snippet with its match marks and the first prompt, for the text view. */
+type Shown = Result & { marked?: string; label?: string };
+
+export function toResults(db: Database, hits: Hit[]): Shown[] {
   const sessions = sessionMap(db, hits);
-  if (asJson) {
-    const results = hits.map((h) => ({
+  return hits.map((h) => {
+    const s = sessions.get(h.session_id);
+    return {
       session: h.session_id,
-      project: projectLabel(h.project, sessions.get(h.session_id)?.cwd),
-      title: sessions.get(h.session_id)?.title ?? null,
+      project: projectLabel(h.project, s?.cwd),
+      title: s?.title ?? null,
       kind: h.kind,
       tool: h.tool,
       timestamp: h.ts,
@@ -120,28 +141,43 @@ export function printHits(db: Database, hits: Hit[], asJson: boolean) {
       sidechain: h.side === 1,
       snippet: h.snip.replaceAll(MARK_L, "").replaceAll(MARK_R, ""),
       show: showCommand(h),
-    }));
-    console.log(JSON.stringify({ results }, null, 2));
+      marked: h.snip,
+      label: s?.title ?? oneLine(s?.first_prompt ?? "").slice(0, 60),
+    };
+  });
+}
+
+export function printHits(db: Database, hits: Hit[], asJson: boolean) {
+  printResults(toResults(db, hits), asJson);
+}
+
+export function printResults(
+  shown: Shown[],
+  asJson: boolean,
+  errors: { machine: string; error: string }[] = [],
+) {
+  if (asJson) {
+    const results = shown.map(({ marked, label, ...r }) => r);
+    printOut(JSON.stringify(errors.length ? { results, errors } : { results }, null, 2));
     return;
   }
-  if (hits.length === 0) {
+  if (shown.length === 0) {
     console.log(dim("No results."));
     return;
   }
-  hits.forEach((h, i) => {
-    const s = sessions.get(h.session_id);
-    const proj = projectLabel(h.project, s?.cwd);
-    const kind = h.tool ? `${h.kind}(${h.tool})` : h.kind;
-    const title = s?.title ?? oneLine(s?.first_prompt ?? "").slice(0, 60);
-    const tty = process.stdout.isTTY && !process.env.NO_COLOR;
-    const snippet = oneLine(h.snip)
+  const tty = process.stdout.isTTY && !process.env.NO_COLOR;
+  shown.forEach((r, i) => {
+    const kind = r.tool ? `${r.kind}(${r.tool})` : r.kind;
+    const title = r.label ?? r.title ?? "";
+    const where = r.machine ? `${bold(r.machine)}${r.user ? dim(` (${r.user})`) : ""} · ` : "";
+    const snippet = oneLine(r.marked ?? r.snippet)
       .replaceAll(MARK_L, tty ? "\x1b[1;33m" : "")
       .replaceAll(MARK_R, tty ? "\x1b[0m" : "");
     console.log(
-      `${dim(String(i + 1).padStart(2))}. ${cyan(proj)} · ${fmtDate(h.ts)} · ${yellow(kind)}${h.side ? dim(" · agent") : ""} ${title ? dim("· " + title) : ""}`,
+      `${dim(String(i + 1).padStart(2))}. ${where}${cyan(r.project)} · ${fmtDate(r.timestamp)} · ${yellow(kind)}${r.sidechain ? dim(" · agent") : ""} ${title ? dim("· " + title) : ""}`,
     );
     console.log(`    ${snippet.slice(0, 400)}`);
-    console.log(`    ${green("↳")} ${dim(showCommand(h))}`);
+    console.log(`    ${green("↳")} ${dim(r.show)}`);
   });
 }
 

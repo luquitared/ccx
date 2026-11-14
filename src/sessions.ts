@@ -1,18 +1,28 @@
 import type { Database } from "bun:sqlite";
 import type { SessionRow } from "./db.ts";
 import { resolveSession } from "./db.ts";
-import { bold, cyan, dim, fmtDate, oneLine, projectLabel } from "./util.ts";
+import { bold, cyan, dim, fmtDate, oneLine, printOut, projectLabel } from "./util.ts";
 
-export function runSessions(
+/** A session as `--json` prints it. `machine` and `user` are set when other machines were asked. */
+export type SessionOut = {
+  machine?: string;
+  user?: string | null;
+  session: string;
+  project: string;
+  cwd: string | null;
+  branch: string | null;
+  model: string | null;
+  title: string | null;
+  first_prompt: string | null;
+  first_ts: string | null;
+  last_ts: string | null;
+  entries: number;
+};
+
+export function listSessions(
   db: Database,
-  opts: {
-    project?: string;
-    since?: string;
-    query?: string;
-    limit: number;
-    json: boolean;
-  },
-) {
+  opts: { project?: string; since?: string; query?: string; limit: number },
+): SessionOut[] {
   const params: (string | number)[] = [];
   let sql = "SELECT * FROM sessions WHERE 1=1";
   if (opts.project) {
@@ -30,41 +40,54 @@ export function runSessions(
   sql += " ORDER BY last_ts DESC LIMIT ?";
   params.push(opts.limit);
 
-  const rows = db.prepare<SessionRow, (string | number)[]>(sql).all(...params);
+  return db
+    .prepare<SessionRow, (string | number)[]>(sql)
+    .all(...params)
+    .map((r) => ({
+      session: r.session_id,
+      project: projectLabel(r.project, r.cwd),
+      cwd: r.cwd,
+      branch: r.branch,
+      model: r.model,
+      title: r.title,
+      first_prompt: r.first_prompt,
+      first_ts: r.first_ts,
+      last_ts: r.last_ts,
+      entries: r.entry_count,
+    }));
+}
 
-  if (opts.json) {
-    console.log(
-      JSON.stringify(
-        {
-          sessions: rows.map((r) => ({
-            session: r.session_id,
-            project: projectLabel(r.project, r.cwd),
-            cwd: r.cwd,
-            branch: r.branch,
-            model: r.model,
-            title: r.title,
-            first_prompt: r.first_prompt,
-            first_ts: r.first_ts,
-            last_ts: r.last_ts,
-            entries: r.entry_count,
-          })),
-        },
-        null,
-        2,
-      ),
-    );
+export function printSessions(
+  sessions: SessionOut[],
+  asJson: boolean,
+  errors: { machine: string; error: string }[] = [],
+  hint = false,
+) {
+  if (asJson) {
+    printOut(JSON.stringify(errors.length ? { sessions, errors } : { sessions }, null, 2));
     return;
   }
-  if (rows.length === 0) {
-    console.log(dim("No sessions. Run: ccx index"));
+  if (sessions.length === 0) {
+    console.log(dim(hint ? "No sessions. Run: ccx index" : "No sessions."));
     return;
   }
-  for (const r of rows) {
+  const tag = (r: SessionOut) => (r.machine ? `${r.machine}${r.user ? ` (${r.user})` : ""}` : "");
+  const wide = Math.max(0, ...sessions.map((r) => tag(r).length));
+  for (const r of sessions) {
     const label = (r.title ?? oneLine(r.first_prompt ?? "(no prompt)")).slice(0, 80);
+    const where = r.machine ? `${bold(r.machine)}${r.user ? dim(` (${r.user})`) : ""}` : "";
+    const pad = wide ? where + " ".repeat(wide - tag(r).length + 2) : "";
     console.log(
-      `${dim(r.session_id.slice(0, 8))}  ${fmtDate(r.last_ts).padEnd(13)} ${cyan(projectLabel(r.project, r.cwd).padEnd(26).slice(0, 26))} ${dim(String(r.entry_count).padStart(5))}  ${label}`,
+      `${pad}${dim(r.session.slice(0, 8))}  ${fmtDate(r.last_ts).padEnd(13)} ${cyan(r.project.padEnd(26).slice(0, 26))} ${dim(String(r.entries).padStart(5))}  ${label}`,
     );
   }
+}
+
+export function runSessions(
+  db: Database,
+  opts: { project?: string; since?: string; query?: string; limit: number; json: boolean },
+) {
+  printSessions(listSessions(db, opts), opts.json, [], true);
 }
 
 export function runResume(db: Database, prefix: string) {
