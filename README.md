@@ -144,3 +144,27 @@ session, search with `-m all` (or `--user <name>`) and keep the `-m <machine>` o
 - `site/` is that page (deployed with `wrangler deploy`); `assets/` holds the logo and the sources for the social preview image.
 
 MIT licensed. Not affiliated with Anthropic.
+
+## Work tracker
+
+`ccx work` keeps what's still open, grouped by workstream, so the next session and the person
+running it can see what's left. Agents write to it; `ccx work --json` is the read contract for
+anything that wants to draw it.
+
+```bash
+ccx work stream api --name "API" --brief "Public API and its clients"
+ccx work add api "Should v1 keep the old auth header?" --kind decide --on me
+ccx work add api "Merge the retry fix" --on agent --check pr:acme/api#212
+ccx work add api "Confirm the import finished" --kind verify --on dana
+ccx work                     # the board, most urgent stream first
+ccx work --on me             # only what's on you
+ccx work inbox               # sessions nobody has read for open items yet
+ccx work check               # closes items whose PR or issue is finished
+ccx work guide               # the instructions to give an agent
+```
+
+- **`--on`** is who can move it next: `me`, `agent`, or a person's name.
+- **Items link to the session they came from**, picked up from `CLAUDE_CODE_SESSION_ID`.
+- **Near-duplicates are refused** (exit code 3), and so is text that looks like a credential.
+- **Checks are structured** (`pr:owner/repo#1`, `issue:owner/repo#1`), never stored shell commands.
+- Data lives in `~/.ccx/work.db`, apart from the search index, because it can't be rebuilt.

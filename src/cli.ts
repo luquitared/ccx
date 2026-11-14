@@ -7,6 +7,7 @@ import { printHits, printResults, search, toResults, type Result } from "./searc
 import { listSessions, printSessions, runResume, runSessions, runStats, type SessionOut } from "./sessions.ts";
 import { runShare, runShared } from "./share.ts";
 import { printBlocks, runShow } from "./show.ts";
+import { runWork, WorkError } from "./work.ts";
 import { bold, dim, parseWhen, printOut, red } from "./util.ts";
 
 const HELP = `${bold("ccx")} — search your Claude Code conversation history
@@ -18,6 +19,7 @@ ${bold("Usage")}
   ccx sessions [options]             list sessions, newest first
   ccx resume <session>               print the command to resume a session
   ccx stats                          index statistics
+  ccx work [help]                    open items grouped by workstream (see: ccx work help)
   ccx remote [help]                  other machines, through their lofiwave (see: ccx remote help)
   ccx share <session>…               let teammates find a conversation through this machine's lofiwave
   ccx unshare <session>…             take that back
@@ -254,6 +256,11 @@ try {
       break;
     }
 
+    case "work": {
+      await runWork(argv.slice(1));
+      break;
+    }
+
     case "share":
     case "unshare": {
       runShare(openDb(), argv.slice(1), cmd === "share");
@@ -282,5 +289,9 @@ try {
       fail(`unknown command "${cmd}" (see: ccx help)`);
   }
 } catch (err) {
+  if (err instanceof WorkError) {
+    console.error(red(`ccx: ${err.message}`));
+    process.exit(err.code);
+  }
   fail(err instanceof Error ? err.message : String(err));
 }
