@@ -129,7 +129,9 @@ async function describe(name: string, remote: Remote): Promise<boolean> {
     const s = await remoteGet(name, "/api/ccx");
     const users = Array.isArray(s.users) && s.users.length ? ` · users: ${s.users.join(", ")}` : "";
     const state = s.available ? green("ok") : red("ccx not installed there");
-    console.log(`${bold(name)}  ${remote.url}  ${state}${dim(` · host ${s.machine}${users}`)}`);
+    // lofiwave shares a machine's conversations with its team only when its owner turned that on.
+    const shared = s.shared === undefined ? "" : s.shared ? " · shared with its team" : " · owner's token only";
+    console.log(`${bold(name)}  ${remote.url}  ${state}${dim(` · host ${s.machine}${users}${shared}`)}`);
     return Boolean(s.available);
   } catch (e: any) {
     console.log(`${bold(name)}  ${remote.url}  ${red(e.message)}`);
