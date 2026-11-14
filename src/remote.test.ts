@@ -91,3 +91,12 @@ test("a machine that doesn't answer is reported; the others still print", async 
   expect((await ccx("search", "deploy", "-m", "down")).code).toBe(1);
   expect((await ccx("search", "deploy", "-m", "nope")).err).toContain('Unknown machine "nope" (have: box, down)');
 });
+
+test("share picks conversations one by one; shared --json is the list lofiwave reads", async () => {
+  expect(JSON.parse((await ccx("shared", "--json")).out)).toEqual({ sessions: [] });
+  // A session prefix that matches nothing changes nothing.
+  const none = await ccx("share", "ffffffff");
+  expect(none.code).toBe(1);
+  expect(none.err).toContain('No session matching "ffffffff"');
+  expect(JSON.parse((await ccx("shared", "--json")).out)).toEqual({ sessions: [] });
+});

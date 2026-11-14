@@ -86,10 +86,20 @@ ccx show a7146289 --line 482 -C 8 -m box      # read a hit where it lives
   machine's sessions, add its own lofiwave as a remote.
 - A machine that doesn't answer is reported on stderr (and under `errors` with `--json`) and the rest
   still print.
-- **A machine is yours alone until its owner shares it.** lofiwave answers its own token (you, from
-  your other machines) and refuses API keys and signed-in teammates unless that machine sets
-  `CCX_SHARE=team`. Everyone it lets in can search every session there; `--user` narrows a search,
-  it isn't a permission.
+- **What teammates find on a machine is its owner's choice.** With the machine's own lofiwave
+  token you find everything there, so your machines can search each other. A teammate (an API key,
+  or signed in to that lofiwave) finds every conversation on a console the team shares, and on a
+  personal machine only the ones its owner picked:
+
+  ```bash
+  ccx share a7146289        # on that machine: teammates can now find this conversation
+  ccx unshare a7146289
+  ccx shared                # what is shared here
+  ```
+
+  Nothing is shared until you pick it. lofiwave decides which of the two a machine is
+  (`CCX_SHARE=all|picked`; `all` where people sign in with a team password, else `picked`), and
+  `ccx remote list` says which. `--user` narrows a search, it isn't a permission.
 - The other machine needs ccx installed and a lofiwave with `/api/ccx`. The search runs there, so
   nothing is copied here; names, URLs and tokens are kept in `~/.ccx/remotes.json` (mode 600).
 

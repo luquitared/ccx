@@ -5,6 +5,7 @@ import { runIndex } from "./indexer.ts";
 import { LOCAL, gather, pickMachines, remoteGet, runRemote } from "./remote.ts";
 import { printHits, printResults, search, toResults, type Result } from "./search.ts";
 import { listSessions, printSessions, runResume, runSessions, runStats, type SessionOut } from "./sessions.ts";
+import { runShare, runShared } from "./share.ts";
 import { printBlocks, runShow } from "./show.ts";
 import { bold, dim, parseWhen, printOut, red } from "./util.ts";
 
@@ -18,6 +19,9 @@ ${bold("Usage")}
   ccx resume <session>               print the command to resume a session
   ccx stats                          index statistics
   ccx remote [help]                  other machines, through their lofiwave (see: ccx remote help)
+  ccx share <session>…               let teammates find a conversation through this machine's lofiwave
+  ccx unshare <session>…             take that back
+  ccx shared [--json]                the conversations shared here
 
 ${bold("search options")}
   -p, --project <s>    filter by project (substring of project dir)
@@ -247,6 +251,17 @@ try {
 
     case "stats": {
       runStats(openDb());
+      break;
+    }
+
+    case "share":
+    case "unshare": {
+      runShare(openDb(), argv.slice(1), cmd === "share");
+      break;
+    }
+
+    case "shared": {
+      runShared(openDb(), argv.includes("--json"));
       break;
     }
 
