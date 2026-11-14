@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolveSession } from "./db.ts";
 import { extractEntry, type Extracted } from "./extract.ts";
 import {
+  printOut,
   bold,
   cyan,
   dim,
@@ -99,7 +100,7 @@ export function runShow(db: Database, target: string, opts: ShowOpts) {
   }
 
   if (opts.json) {
-    console.log(
+    printOut(
       JSON.stringify(
         {
           file,

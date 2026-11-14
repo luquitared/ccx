@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import { basename, dirname } from "node:path";
 import type { SessionRow } from "./db.ts";
 import {
+  printOut,
   bold,
   cyan,
   dim,
@@ -121,7 +122,7 @@ export function printHits(db: Database, hits: Hit[], asJson: boolean) {
       snippet: h.snip.replaceAll(MARK_L, "").replaceAll(MARK_R, ""),
       show: showCommand(h),
     }));
-    console.log(JSON.stringify({ results }, null, 2));
+    printOut(JSON.stringify({ results }, null, 2));
     return;
   }
   if (hits.length === 0) {

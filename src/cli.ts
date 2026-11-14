@@ -5,6 +5,7 @@ import { runIndex } from "./indexer.ts";
 import { printHits, search } from "./search.ts";
 import { runResume, runSessions, runStats } from "./sessions.ts";
 import { runShow } from "./show.ts";
+import { runWork, WorkError } from "./work.ts";
 import { bold, dim, parseWhen, red } from "./util.ts";
 
 const HELP = `${bold("ccx")} — search your Claude Code conversation history
@@ -16,6 +17,7 @@ ${bold("Usage")}
   ccx sessions [options]             list sessions, newest first
   ccx resume <session>               print the command to resume a session
   ccx stats                          index statistics
+  ccx work [help]                    open items grouped by workstream (see: ccx work help)
 
 ${bold("search options")}
   -p, --project <s>    filter by project (substring of project dir)
@@ -176,6 +178,11 @@ try {
       break;
     }
 
+    case "work": {
+      await runWork(argv.slice(1));
+      break;
+    }
+
     case undefined:
     case "help":
     case "--help":
@@ -188,5 +195,9 @@ try {
       fail(`unknown command "${cmd}" (see: ccx help)`);
   }
 } catch (err) {
+  if (err instanceof WorkError) {
+    console.error(red(`ccx: ${err.message}`));
+    process.exit(err.code);
+  }
   fail(err instanceof Error ? err.message : String(err));
 }

@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import type { SessionRow } from "./db.ts";
 import { resolveSession } from "./db.ts";
-import { bold, cyan, dim, fmtDate, oneLine, projectLabel } from "./util.ts";
+import { bold, cyan, dim, fmtDate, oneLine, printOut, projectLabel } from "./util.ts";
 
 export function runSessions(
   db: Database,
@@ -33,7 +33,7 @@ export function runSessions(
   const rows = db.prepare<SessionRow, (string | number)[]>(sql).all(...params);
 
   if (opts.json) {
-    console.log(
+    printOut(
       JSON.stringify(
         {
           sessions: rows.map((r) => ({
